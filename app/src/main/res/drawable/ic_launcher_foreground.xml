@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54">
+        <!-- Center Bloom Petals -->
+        <!-- Top Petal (Orange) -->
+        <path
+            android:fillColor="#FFFFAB00"
+            android:pathData="M 54,34 C 47,34 46,45 54,50 C 62,45 61,34 54,34 Z" />
+        <!-- Bottom Petal (Coral) -->
+        <path
+            android:fillColor="#FFFF5252"
+            android:pathData="M 54,74 C 47,74 46,63 54,58 C 62,63 61,74 54,74 Z" />
+        <!-- Left Petal (Teal) -->
+        <path
+            android:fillColor="#FF00E5FF"
+            android:pathData="M 34,54 C 34,47 45,46 50,54 C 45,62 34,61 34,54 Z" />
+        <!-- Right Petal (Green) -->
+        <path
+            android:fillColor="#FF00E676"
+            android:pathData="M 74,54 C 74,47 63,46 58,54 C 63,62 74,61 74,54 Z" />
+
+        <!-- Top-Left Diagonal Petal (Purple) -->
+        <path
+            android:fillColor="#FFB388FF"
+            android:pathData="M 40,40 C 37,45 44,51 49,49 C 51,44 45,37 40,40 Z" />
+        <!-- Top-Right Diagonal Petal (Pink) -->
+        <path
+            android:fillColor="#FFFF4081"
+            android:pathData="M 68,40 C 63,37 57,44 59,49 C 64,51 71,45 68,40 Z" />
+        <!-- Bottom-Left Diagonal Petal (Amber) -->
+        <path
+            android:fillColor="#FFFFD740"
+            android:pathData="M 40,68 C 45,71 51,64 49,59 C 44,57 37,63 40,68 Z" />
+        <!-- Bottom-Right Diagonal Petal (Cyan) -->
+        <path
+            android:fillColor="#FF18FFFF"
+            android:pathData="M 68,68 C 71,63 64,57 59,59 C 57,64 63,71 68,68 Z" />
+
+        <!-- Center Golden Flower Disc -->
+        <path
+            android:fillColor="#FFFFD600"
+            android:pathData="M 54,54 m -11,0 a 11,11 0 1,0 22,0 a 11,11 0 1,0 -22,0" />
+
+        <!-- Center Plus Math Cross Symbol -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M 52,46 L 56,46 L 56,52 L 62,52 L 62,56 L 56,56 L 56,62 L 52,62 L 52,56 L 46,56 L 46,52 L 52,52 Z" />
+    </group>
+</vector>
