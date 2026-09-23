@@ -39,6 +39,143 @@ object InitialData {
     Achievement("ach_money", "Market Merchant", "Counted coins to buy toys in the shop!", "🪙", 5, 2, false)
   )
 
+  val sampleBadges = listOf(
+    com.example.data.model.BadgeAward(
+      id = "badge_add_novice",
+      childId = "child_leo",
+      title = "Addition Seedling",
+      description = "Solved your first 3 addition equations with flying colors!",
+      badgeType = "STICKER",
+      stickerOrTrophyEmoji = "🌱",
+      category = "Arithmetic",
+      milestoneLevel = 1,
+      isUnlocked = true,
+      unlockedAt = System.currentTimeMillis() - 86400000L
+    ),
+    com.example.data.model.BadgeAward(
+      id = "badge_add_master",
+      childId = "child_leo",
+      title = "Golden Calculator Trophy",
+      description = "Mastered 10 arithmetic challenges without a single misstep!",
+      badgeType = "TROPHY",
+      stickerOrTrophyEmoji = "🏆",
+      category = "Arithmetic",
+      milestoneLevel = 2,
+      isUnlocked = false
+    ),
+    com.example.data.model.BadgeAward(
+      id = "badge_daily_champ",
+      childId = "child_leo",
+      title = "Daily Quest Champion",
+      description = "Conquered an entire Gemini Daily Arithmetic Challenge!",
+      badgeType = "TROPHY",
+      stickerOrTrophyEmoji = "👑",
+      category = "Daily Challenge",
+      milestoneLevel = 1,
+      isUnlocked = true,
+      unlockedAt = System.currentTimeMillis() - 43200000L
+    ),
+    com.example.data.model.BadgeAward(
+      id = "badge_dino_sticker",
+      childId = "child_leo",
+      title = "Dino Math Explorer",
+      description = "Solved arithmetic problems with friendly dinosaurs!",
+      badgeType = "STICKER",
+      stickerOrTrophyEmoji = "🦕",
+      category = "Arithmetic",
+      milestoneLevel = 1,
+      isUnlocked = true,
+      unlockedAt = System.currentTimeMillis() - 21600000L
+    ),
+    com.example.data.model.BadgeAward(
+      id = "badge_streak_blaze",
+      childId = "child_leo",
+      title = "Solar Blaze Trophy",
+      description = "Reached a blazing 5-day daily learning streak!",
+      badgeType = "TROPHY",
+      stickerOrTrophyEmoji = "☀️",
+      category = "Streak",
+      milestoneLevel = 3,
+      isUnlocked = false
+    ),
+    com.example.data.model.BadgeAward(
+      id = "badge_rainbow_sticker",
+      childId = "child_leo",
+      title = "Rainbow Math Sparkle",
+      description = "Earned 50 total golden stars across math quests!",
+      badgeType = "STICKER",
+      stickerOrTrophyEmoji = "🌈",
+      category = "Mastery",
+      milestoneLevel = 2,
+      isUnlocked = false
+    ),
+    com.example.data.model.BadgeAward(
+      id = "badge_galaxy_trophy",
+      childId = "child_leo",
+      title = "Grand Cosmic Trophy",
+      description = "Reached level 5 in MathBloom adventures!",
+      badgeType = "TROPHY",
+      stickerOrTrophyEmoji = "🪐",
+      category = "Mastery",
+      milestoneLevel = 5,
+      isUnlocked = false
+    ),
+    com.example.data.model.BadgeAward(
+      id = "badge_speed_sticker",
+      childId = "child_leo",
+      title = "Rocket Cheetah Sticker",
+      description = "Finished a daily challenge set in record time!",
+      badgeType = "STICKER",
+      stickerOrTrophyEmoji = "🚀",
+      category = "Daily Challenge",
+      milestoneLevel = 2,
+      isUnlocked = false
+    )
+  )
+
+  val sampleDailyChallenge = com.example.data.model.DailyChallenge(
+    id = "challenge_today",
+    dateString = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date()),
+    title = "Safari Safari Math Expedition",
+    targetLevel = 2,
+    theme = "Safari Animals",
+    themeEmoji = "🦁",
+    problems = listOf(
+      com.example.data.model.DailyProblem(
+        id = "safari_1",
+        question = "3 cute baby zebras meet 4 elephant calves by the river. How many animal friends are there altogether?",
+        visualEmoji = "🦓",
+        options = listOf("6", "7", "8", "9"),
+        correctAnswer = "7",
+        explanation = "3 zebras + 4 elephants = 7 total animal friends!",
+        hint = "Count: 3... then 4, 5, 6, 7!"
+      ),
+      com.example.data.model.DailyProblem(
+        id = "safari_2",
+        question = "A giraffe family had 9 green acacia branches. A hungry monkey ate 3 of them! How many branches are left?",
+        visualEmoji = "🦒",
+        options = listOf("5", "6", "7", "8"),
+        correctAnswer = "6",
+        explanation = "9 branches take away 3 leaves 6 fresh branches!",
+        hint = "Start at 9 and count back 3: 8, 7, 6."
+      ),
+      com.example.data.model.DailyProblem(
+        id = "safari_3",
+        question = "There are 2 pride rocks. On each rock, 4 lion cubs are resting. How many lion cubs in total?",
+        visualEmoji = "🦁",
+        options = listOf("6", "7", "8", "10"),
+        correctAnswer = "8",
+        explanation = "2 groups of 4 lion cubs equals 8 lion cubs! (2 × 4 = 8)",
+        hint = "Add 4 + 4!"
+      )
+    ),
+    isCompleted = false,
+    score = 0,
+    starsEarned = 0,
+    isAiGenerated = true
+  )
+
+
   val sampleCollectibles = listOf(
     CollectibleItem("col_t_rex", "T-Rex Junior", "Dinosaurs", "🦖", "Legendary", true),
     CollectibleItem("col_brachio", "Gentle Brachio", "Dinosaurs", "🦕", "Rare", false),

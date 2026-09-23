@@ -183,4 +183,114 @@ class MathBloomRepository(
   suspend fun triggerSync() {
     syncManager.triggerFullSync()
   }
+
+  // --- Daily Challenge Feature (Gemini model: gemini-3.5-flash) ---
+  fun getDailyChallengeForToday(dateStr: String): Flow<com.example.data.model.DailyChallenge?> =
+    database.dailyChallengeDao().getChallengeForDate(dateStr)
+
+  suspend fun getDailyChallengeForTodaySync(dateStr: String): com.example.data.model.DailyChallenge? =
+    database.dailyChallengeDao().getChallengeForDateSync(dateStr)
+
+  suspend fun fetchOrGenerateDailyChallenge(
+    childName: String,
+    level: Int,
+    interest: String,
+    forceRefresh: Boolean = false
+  ): com.example.data.model.DailyChallenge {
+    val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+    val existing = database.dailyChallengeDao().getChallengeForDateSync(today)
+
+    if (existing != null && !forceRefresh) {
+      return existing
+    }
+
+    val result = geminiApiClient.generateDailyChallenge(childName, level, interest)
+    val challenge = result.challenge ?: geminiApiClient.createOfflineDailyChallenge(
+      "challenge_$today",
+      today,
+      level,
+      interest
+    )
+
+    database.dailyChallengeDao().insertChallenge(challenge)
+
+    // Sync to Firestore
+    appScope.launch(Dispatchers.IO) {
+      syncManager.syncDailyChallengeToCloud(challenge)
+    }
+
+    return challenge
+  }
+
+  suspend fun completeDailyChallenge(
+    challengeId: String,
+    score: Int,
+    starsEarned: Int
+  ) {
+    database.dailyChallengeDao().markCompleted(challengeId, score, starsEarned)
+    database.childProfileDao().addStars("child_leo", starsEarned)
+
+    // Check & reward Daily Challenge champion trophy if not unlocked
+    unlockBadgeIfEligible("badge_daily_champ")
+    if (score == 3) {
+      unlockBadgeIfEligible("badge_speed_sticker")
+    }
+
+    val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+    val updated = database.dailyChallengeDao().getChallengeForDateSync(today)
+    if (updated != null) {
+      appScope.launch(Dispatchers.IO) {
+        syncManager.syncDailyChallengeToCloud(updated)
+        val profile = database.childProfileDao().getProfileByIdSync("child_leo")
+        if (profile != null) syncManager.syncChildProfileToCloud(profile)
+      }
+    }
+  }
+
+  // --- Badge Award System (Virtual Stickers & Trophies in Firebase Firestore) ---
+  fun getBadgeAwards(childId: String = "child_leo"): Flow<List<com.example.data.model.BadgeAward>> =
+    database.badgeAwardDao().getBadgesForChild(childId)
+
+  suspend fun unlockBadgeIfEligible(badgeId: String): com.example.data.model.BadgeAward? {
+    val badge = database.badgeAwardDao().getBadgeById(badgeId) ?: return null
+    if (!badge.isUnlocked) {
+      database.badgeAwardDao().unlockBadge(badgeId, System.currentTimeMillis(), synced = true)
+      val updated = badge.copy(isUnlocked = true, unlockedAt = System.currentTimeMillis())
+      appScope.launch(Dispatchers.IO) {
+        syncManager.syncBadgeAwardToCloud(updated)
+      }
+      return updated
+    }
+    return null
+  }
+
+  suspend fun awardMilestoneBadge(
+    title: String,
+    description: String,
+    badgeType: String,
+    emoji: String,
+    category: String,
+    milestoneLevel: Int
+  ): com.example.data.model.BadgeAward {
+    val id = "badge_${System.currentTimeMillis()}"
+    val badge = com.example.data.model.BadgeAward(
+      id = id,
+      childId = "child_leo",
+      title = title,
+      description = description,
+      badgeType = badgeType,
+      stickerOrTrophyEmoji = emoji,
+      category = category,
+      milestoneLevel = milestoneLevel,
+      isUnlocked = true,
+      unlockedAt = System.currentTimeMillis(),
+      syncedToFirestore = true
+    )
+    database.badgeAwardDao().insertBadges(listOf(badge))
+    appScope.launch(Dispatchers.IO) {
+      syncManager.syncBadgeAwardToCloud(badge)
+    }
+    return badge
+  }
 }
+

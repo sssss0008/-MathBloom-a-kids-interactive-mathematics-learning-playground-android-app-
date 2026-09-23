@@ -1,6 +1,7 @@
 package com.example.ui.treasure
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,8 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Achievement
+import com.example.data.model.BadgeAward
 import com.example.data.model.CollectibleItem
 import com.example.ui.theme.MathBlue
+import com.example.ui.theme.MathCoral
 import com.example.ui.theme.MathGreen
 import com.example.ui.theme.MathOrange
 import com.example.ui.theme.MathPurple
@@ -46,9 +49,10 @@ import com.example.ui.theme.MathYellow
 fun TreasureScreen(
   collectibles: List<CollectibleItem>,
   achievements: List<Achievement>,
+  badgeAwards: List<BadgeAward> = emptyList(),
   streakDays: Int
 ) {
-  var selectedTab by remember { mutableStateOf("Collectibles") } // "Collectibles", "Badges"
+  var selectedTab by remember { mutableStateOf("Badges & Trophies") } // "Badges & Trophies", "Collectibles", "Milestones"
 
   LazyColumn(
     modifier = Modifier
@@ -87,29 +91,30 @@ fun TreasureScreen(
       }
     }
 
-    // Tab Switcher: Collectibles vs Badges
+    // Tab Switcher: Badges & Trophies vs Collectibles vs Milestones
     item {
       Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
-        listOf("Collectibles", "Badges").forEach { tab ->
+        listOf("Badges & Trophies", "Collectibles", "Milestones").forEach { tab ->
           val isSelected = (selectedTab == tab)
           Surface(
             shape = RoundedCornerShape(14.dp),
-            color = if (isSelected) MathBlue else MaterialTheme.colorScheme.surfaceVariant,
+            color = if (isSelected) MathPurple else MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier
               .weight(1f)
               .clickable { selectedTab = tab }
           ) {
             Box(
-              modifier = Modifier.padding(vertical = 12.dp),
+              modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
               contentAlignment = Alignment.Center
             ) {
               Text(
                 text = tab,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
+                maxLines = 1,
                 color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
               )
             }
@@ -118,7 +123,42 @@ fun TreasureScreen(
       }
     }
 
-    if (selectedTab == "Collectibles") {
+    if (selectedTab == "Badges & Trophies") {
+      // Badges & Virtual Stickers & Trophies (Stored in Firestore)
+      item {
+        val unlockedCount = badgeAwards.count { it.isUnlocked }
+        Card(
+          shape = RoundedCornerShape(18.dp),
+          colors = CardDefaults.cardColors(containerColor = MathPurple.copy(alpha = 0.1f)),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(text = "☁️", fontSize = 28.sp)
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+              Text(
+                text = "Virtual Stickers & Trophies ($unlockedCount of ${badgeAwards.size})",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = MathPurple
+              )
+              Text(
+                text = "Earned across daily math quests & synced in Firebase Firestore",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+            }
+          }
+        }
+      }
+
+      items(badgeAwards) { badge ->
+        BadgeAwardCard(badge = badge)
+      }
+    } else if (selectedTab == "Collectibles") {
       // Collectibles Gallery
       item {
         val unlockedCount = collectibles.count { it.isUnlocked }
@@ -149,7 +189,7 @@ fun TreasureScreen(
         }
       }
     } else {
-      // Badges & Achievements
+      // Achievements & Milestones
       items(achievements) { ach ->
         Card(
           shape = RoundedCornerShape(18.dp),
@@ -214,6 +254,100 @@ fun TreasureScreen(
 }
 
 @Composable
+private fun BadgeAwardCard(badge: BadgeAward) {
+  val isTrophy = badge.badgeType == "TROPHY"
+  val accentColor = if (isTrophy) MathYellow else MathCoral
+
+  Card(
+    shape = RoundedCornerShape(18.dp),
+    colors = CardDefaults.cardColors(
+      containerColor = if (badge.isUnlocked) Color.White else Color(0xFFF7F8FA)
+    ),
+    elevation = CardDefaults.cardElevation(defaultElevation = if (badge.isUnlocked) 2.dp else 0.dp),
+    modifier = Modifier.fillMaxWidth()
+  ) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(14.dp),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Box(
+        modifier = Modifier
+          .size(54.dp)
+          .clip(if (isTrophy) CircleShape else RoundedCornerShape(14.dp))
+          .background(
+            if (badge.isUnlocked) accentColor.copy(alpha = 0.2f) else Color(0xFFECEFF1)
+          )
+          .then(
+            if (badge.isUnlocked && !isTrophy) Modifier.border(2.dp, accentColor, RoundedCornerShape(14.dp))
+            else Modifier
+          ),
+        contentAlignment = Alignment.Center
+      ) {
+        Text(
+          text = if (badge.isUnlocked) badge.stickerOrTrophyEmoji else "🔒",
+          fontSize = 28.sp
+        )
+      }
+
+      Spacer(modifier = Modifier.width(14.dp))
+
+      Column(modifier = Modifier.weight(1f)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+            text = badge.title,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleSmall,
+            color = if (badge.isUnlocked) MaterialTheme.colorScheme.onSurface else Color.Gray
+          )
+          Spacer(modifier = Modifier.width(6.dp))
+          Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = if (isTrophy) MathYellow.copy(alpha = 0.2f) else MathCoral.copy(alpha = 0.15f)
+          ) {
+            Text(
+              text = if (isTrophy) "TROPHY 🏆" else "STICKER ✨",
+              fontSize = 9.sp,
+              fontWeight = FontWeight.ExtraBold,
+              color = if (isTrophy) Color(0xFF795548) else MathCoral,
+              modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Text(
+          text = badge.description,
+          fontSize = 12.sp,
+          color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+            text = "Category: ${badge.category} • Lvl ${badge.milestoneLevel}",
+            fontSize = 10.sp,
+            color = Color.Gray
+          )
+          if (badge.isUnlocked) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+              text = "☁️ Synced to Firestore",
+              fontSize = 10.sp,
+              color = MathGreen,
+              fontWeight = FontWeight.Bold
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
 private fun CollectibleCard(item: CollectibleItem) {
   Card(
     shape = RoundedCornerShape(18.dp),
@@ -269,3 +403,4 @@ private fun CollectibleCard(item: CollectibleItem) {
     }
   }
 }
+

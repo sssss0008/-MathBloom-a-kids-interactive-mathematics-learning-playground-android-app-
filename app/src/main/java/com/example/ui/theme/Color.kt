@@ -23,8 +23,8 @@ val MathPurpleLight = Color(0xFFF1EBFF)
 
 val MathTeal = Color(0xFF00B4D8)
 
-val CanvasBackgroundLight = Color(0xFFF7F9FD)
-val CardBackgroundLight = Color(0xFFFFFFFF)
+val CanvasBackgroundLight = Color(0xFFF0F4FF)
+val CardBackgroundLight = Color(0xFFE8EEFC)
 val TextPrimary = Color(0xFF1E2238)
 val TextSecondary = Color(0xFF5B627D)
 

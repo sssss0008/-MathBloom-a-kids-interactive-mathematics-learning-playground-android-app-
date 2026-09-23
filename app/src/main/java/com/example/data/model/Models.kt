@@ -125,3 +125,45 @@ data class DailyAdventureStep(
   val isCompleted: Boolean,
   val targetLessonOrGameId: String
 )
+
+data class DailyProblem(
+  val id: String,
+  val question: String,
+  val visualEmoji: String = "🌟",
+  val options: List<String>,
+  val correctAnswer: String,
+  val explanation: String,
+  val hint: String = ""
+)
+
+@Entity(tableName = "daily_challenges")
+data class DailyChallenge(
+  @PrimaryKey val id: String, // e.g. "challenge_2026-09-22"
+  val dateString: String,
+  val title: String,
+  val targetLevel: Int,
+  val theme: String, // e.g. "Safari Animals", "Space Explorers", "Dino Bakery"
+  val themeEmoji: String = "🦁",
+  val problems: List<DailyProblem> = emptyList(),
+  val isCompleted: Boolean = false,
+  val score: Int = 0,
+  val starsEarned: Int = 0,
+  val completedAt: Long? = null,
+  val isAiGenerated: Boolean = true
+)
+
+@Entity(tableName = "badge_awards")
+data class BadgeAward(
+  @PrimaryKey val id: String,
+  val childId: String = "child_leo",
+  val title: String,
+  val description: String,
+  val badgeType: String, // "STICKER" or "TROPHY"
+  val stickerOrTrophyEmoji: String,
+  val category: String, // "Arithmetic", "Streak", "Daily Challenge", "Mastery"
+  val milestoneLevel: Int = 1,
+  val isUnlocked: Boolean = false,
+  val unlockedAt: Long? = null,
+  val syncedToFirestore: Boolean = false
+)
+

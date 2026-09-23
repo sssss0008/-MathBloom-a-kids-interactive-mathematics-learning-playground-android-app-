@@ -127,6 +127,12 @@ fun MathBloomApp(viewModel: MathBloomViewModel) {
   val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
   val searchResult by viewModel.searchResult.collectAsStateWithLifecycle()
 
+  // Daily Challenge & Badge Awards (Gemini API & Firestore)
+  val isGeneratingChallenge by viewModel.isGeneratingChallenge.collectAsStateWithLifecycle()
+  val activeDailyChallengeSession by viewModel.activeDailyChallengeSession.collectAsStateWithLifecycle()
+  val todayDailyChallenge by viewModel.todayDailyChallenge.collectAsStateWithLifecycle()
+  val badgeAwards by viewModel.badgeAwards.collectAsStateWithLifecycle()
+
   var studioSection by remember { mutableStateOf("Drawing") }
 
   // First lesson or next uncompleted lesson
@@ -135,7 +141,7 @@ fun MathBloomApp(viewModel: MathBloomViewModel) {
   Scaffold(
     modifier = Modifier.fillMaxSize(),
     topBar = {
-      if (!isOnboarding && !isParentModeActive && activeLesson == null && activeGameId == null) {
+      if (!isOnboarding && !isParentModeActive && activeLesson == null && activeGameId == null && !activeDailyChallengeSession) {
         KidTopBar(
           childProfile = currentProfile,
           onAvatarClicked = { viewModel.startOnboarding() },
@@ -144,7 +150,7 @@ fun MathBloomApp(viewModel: MathBloomViewModel) {
       }
     },
     bottomBar = {
-      if (!isOnboarding && !isParentModeActive && activeLesson == null && activeGameId == null) {
+      if (!isOnboarding && !isParentModeActive && activeLesson == null && activeGameId == null && !activeDailyChallengeSession) {
         KidBottomNav(
           currentTab = currentTab,
           onTabSelected = { viewModel.selectTab(it) }
@@ -161,6 +167,7 @@ fun MathBloomApp(viewModel: MathBloomViewModel) {
         targetState = when {
           isOnboarding -> "onboarding"
           isParentModeActive -> "parent"
+          activeDailyChallengeSession -> "daily_challenge"
           activeLesson != null -> "lesson"
           activeGameId != null -> "game"
           else -> currentTab.name
@@ -177,7 +184,20 @@ fun MathBloomApp(viewModel: MathBloomViewModel) {
             )
           }
 
+          "daily_challenge" -> {
+            com.example.ui.challenge.DailyChallengeScreen(
+              dailyChallenge = todayDailyChallenge,
+              isGenerating = isGeneratingChallenge,
+              onGenerateNew = { viewModel.generateDailyChallenge(force = true) },
+              onCompleteChallenge = { challengeId, score, stars ->
+                viewModel.completeDailyChallenge(challengeId, score, stars)
+              },
+              onBack = { viewModel.closeDailyChallenge() }
+            )
+          }
+
           "parent" -> {
+
             ParentDashboardScreen(
               childProfile = currentProfile,
               parentSettings = parentSettings,
@@ -216,9 +236,11 @@ fun MathBloomApp(viewModel: MathBloomViewModel) {
               childProfile = currentProfile,
               nextLesson = nextLesson,
               completedCount = completedCount,
+              dailyChallenge = todayDailyChallenge,
               onStartLearning = {
                 nextLesson?.let { viewModel.startLesson(it) }
               },
+              onOpenDailyChallenge = { viewModel.openDailyChallenge() },
               onPlayGame = { viewModel.playGame("catcher") },
               onOpenDrawing = {
                 studioSection = "Drawing"
@@ -273,9 +295,11 @@ fun MathBloomApp(viewModel: MathBloomViewModel) {
             TreasureScreen(
               collectibles = collectibles,
               achievements = achievements,
+              badgeAwards = badgeAwards,
               streakDays = currentProfile?.streakDays ?: 1
             )
           }
+
         }
       }
 

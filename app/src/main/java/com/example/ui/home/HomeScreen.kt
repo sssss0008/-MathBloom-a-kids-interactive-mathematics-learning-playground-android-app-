@@ -46,7 +46,9 @@ fun HomeScreen(
   childProfile: ChildProfile?,
   nextLesson: Lesson?,
   completedCount: Int,
+  dailyChallenge: com.example.data.model.DailyChallenge? = null,
   onStartLearning: () -> Unit,
+  onOpenDailyChallenge: () -> Unit = {},
   onPlayGame: () -> Unit,
   onOpenDrawing: () -> Unit,
   onOpenStories: () -> Unit,
@@ -173,6 +175,89 @@ fun HomeScreen(
       }
     }
 
+    // Daily Challenge Interactive Feature Banner (Powered by Gemini API)
+    item {
+      Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MathPurple),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier
+          .fillMaxWidth()
+          .clickable(onClick = onOpenDailyChallenge)
+          .testTag("daily_challenge_home_card")
+      ) {
+        Row(
+          modifier = Modifier.padding(18.dp),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Box(
+            modifier = Modifier
+              .size(56.dp)
+              .clip(CircleShape)
+              .background(Color.White.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+          ) {
+            Text(text = dailyChallenge?.themeEmoji ?: "🎯", fontSize = 30.sp)
+          }
+
+          Spacer(modifier = Modifier.width(14.dp))
+
+          Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(
+                text = "DAILY CHALLENGE",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 12.sp,
+                color = MathYellow
+              )
+              Spacer(modifier = Modifier.width(6.dp))
+              Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = Color.White.copy(alpha = 0.25f)
+              ) {
+                Text(
+                  text = "Gemini AI",
+                  fontSize = 9.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = Color.White,
+                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+              }
+            }
+            Text(
+              text = dailyChallenge?.title ?: "Today's Arithmetic Quest",
+              fontWeight = FontWeight.Bold,
+              fontSize = 16.sp,
+              color = Color.White
+            )
+            Text(
+              text = if (dailyChallenge?.isCompleted == true) "Completed today! ⭐ +${dailyChallenge.starsEarned}" else "3 age-appropriate puzzles • Win stickers & trophies!",
+              fontSize = 12.sp,
+              color = Color.White.copy(alpha = 0.9f)
+            )
+          }
+
+          Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = if (dailyChallenge?.isCompleted == true) MathGreen else MathYellow
+          ) {
+            Box(
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(
+                text = if (dailyChallenge?.isCompleted == true) "DONE ✓" else "START ▶",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 12.sp,
+                color = if (dailyChallenge?.isCompleted == true) Color.White else Color(0xFF3E2723)
+              )
+            }
+          }
+        }
+      }
+    }
+
+
     // New AI & Gemini Features Showcase Row
     item {
       Text(
@@ -277,8 +362,9 @@ private fun QuickZoneCard(
   onClick: () -> Unit
 ) {
   Card(
-    shape = RoundedCornerShape(20.dp),
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    shape = RoundedCornerShape(22.dp),
+    colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f)),
+    border = androidx.compose.foundation.BorderStroke(1.5.dp, color.copy(alpha = 0.35f)),
     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     modifier = modifier.clickable(onClick = onClick)
   ) {
@@ -288,24 +374,27 @@ private fun QuickZoneCard(
     ) {
       Box(
         modifier = Modifier
-          .size(52.dp)
+          .size(54.dp)
           .clip(CircleShape)
-          .background(color.copy(alpha = 0.15f)),
+          .background(color.copy(alpha = 0.22f)),
         contentAlignment = Alignment.Center
       ) {
         Text(text = emoji, fontSize = 28.sp)
       }
-      Spacer(modifier = Modifier.height(8.dp))
+      Spacer(modifier = Modifier.height(10.dp))
       Text(
         text = title,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.ExtraBold,
         fontSize = 14.sp,
         color = MaterialTheme.colorScheme.onSurface
       )
+      Spacer(modifier = Modifier.height(2.dp))
       Text(
         text = subtitle,
         fontSize = 11.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        fontWeight = FontWeight.Medium,
+        color = color.copy(alpha = 0.85f),
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center
       )
     }
   }

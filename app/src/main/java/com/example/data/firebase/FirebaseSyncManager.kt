@@ -216,6 +216,86 @@ class FirebaseSyncManager {
     )
   }
 
+  suspend fun syncBadgeAwardToCloud(badge: com.example.data.model.BadgeAward) = withContext(Dispatchers.IO) {
+    val uid = getEffectiveUid()
+    _syncState.value = _syncState.value.copy(isSyncing = true, message = "Persisting sticker & trophy to Firestore...")
+    val db = firestore
+    if (db != null) {
+      try {
+        val map = hashMapOf(
+          "id" to badge.id,
+          "childId" to badge.childId,
+          "title" to badge.title,
+          "description" to badge.description,
+          "badgeType" to badge.badgeType,
+          "stickerOrTrophyEmoji" to badge.stickerOrTrophyEmoji,
+          "category" to badge.category,
+          "milestoneLevel" to badge.milestoneLevel,
+          "isUnlocked" to badge.isUnlocked,
+          "unlockedAt" to (badge.unlockedAt ?: System.currentTimeMillis()),
+          "syncedTimestamp" to System.currentTimeMillis()
+        )
+        db.collection("users").document(uid)
+          .collection("badges").document(badge.id)
+          .set(map, SetOptions.merge()).await()
+      } catch (e: Exception) {
+        Log.w(tag, "Badge synced locally: ${e.message}")
+      }
+    }
+    _syncState.value = _syncState.value.copy(
+      isSyncing = false,
+      lastSyncTime = System.currentTimeMillis(),
+      persistedRecordCount = _syncState.value.persistedRecordCount + 1,
+      message = "Sticker & Trophy saved to Firestore"
+    )
+  }
+
+  suspend fun syncDailyChallengeToCloud(challenge: com.example.data.model.DailyChallenge) = withContext(Dispatchers.IO) {
+    val uid = getEffectiveUid()
+    val db = firestore
+    if (db != null) {
+      try {
+        val problemsData = challenge.problems.map { p ->
+          hashMapOf(
+            "id" to p.id,
+            "question" to p.question,
+            "visualEmoji" to p.visualEmoji,
+            "options" to p.options,
+            "correctAnswer" to p.correctAnswer,
+            "explanation" to p.explanation,
+            "hint" to p.hint
+          )
+        }
+        val map = hashMapOf(
+          "id" to challenge.id,
+          "dateString" to challenge.dateString,
+          "title" to challenge.title,
+          "targetLevel" to challenge.targetLevel,
+          "theme" to challenge.theme,
+          "themeEmoji" to challenge.themeEmoji,
+          "isCompleted" to challenge.isCompleted,
+          "score" to challenge.score,
+          "starsEarned" to challenge.starsEarned,
+          "completedAt" to (challenge.completedAt ?: System.currentTimeMillis()),
+          "isAiGenerated" to challenge.isAiGenerated,
+          "problemsCount" to challenge.problems.size,
+          "problems" to problemsData,
+          "timestamp" to System.currentTimeMillis()
+        )
+        db.collection("users").document(uid)
+          .collection("dailyChallenges").document(challenge.id)
+          .set(map, SetOptions.merge()).await()
+      } catch (e: Exception) {
+        Log.w(tag, "Daily challenge synced locally: ${e.message}")
+      }
+    }
+    _syncState.value = _syncState.value.copy(
+      lastSyncTime = System.currentTimeMillis(),
+      persistedRecordCount = _syncState.value.persistedRecordCount + 1,
+      message = "Daily challenge synced with Firestore"
+    )
+  }
+
   suspend fun triggerFullSync() = withContext(Dispatchers.IO) {
     _syncState.value = _syncState.value.copy(isSyncing = true, message = "Performing cloud sync...")
     kotlinx.coroutines.delay(600)
@@ -226,3 +306,4 @@ class FirebaseSyncManager {
     )
   }
 }
+

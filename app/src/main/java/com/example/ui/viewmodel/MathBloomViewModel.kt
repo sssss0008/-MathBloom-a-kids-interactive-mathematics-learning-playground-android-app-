@@ -89,8 +89,26 @@ class MathBloomViewModel(
   val parentSettings: StateFlow<ParentSettings?> = repository.getParentSettings()
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+  // Daily Challenge State
+  private val _isGeneratingChallenge = MutableStateFlow(false)
+  val isGeneratingChallenge: StateFlow<Boolean> = _isGeneratingChallenge.asStateFlow()
+
+  private val _activeDailyChallengeSession = MutableStateFlow(false)
+  val activeDailyChallengeSession: StateFlow<Boolean> = _activeDailyChallengeSession.asStateFlow()
+
+  private val todayDateStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+  val todayDailyChallenge: StateFlow<com.example.data.model.DailyChallenge?> =
+    repository.getDailyChallengeForToday(todayDateStr)
+      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+  // Badge Awards (Virtual Stickers & Trophies persisted to Firestore)
+  val badgeAwards: StateFlow<List<com.example.data.model.BadgeAward>> =
+    repository.getBadgeAwards("child_leo")
+      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
   val syncState: StateFlow<SyncState> = repository.syncState
   val authState: StateFlow<AuthUserState> = repository.authState
+
 
   fun selectTab(tab: BottomTab) {
     _currentTab.value = tab
@@ -263,7 +281,54 @@ class MathBloomViewModel(
       repository.triggerSync()
     }
   }
+
+  // --- Daily Challenge Actions ---
+  fun openDailyChallenge() {
+    _activeDailyChallengeSession.value = true
+    viewModelScope.launch {
+      if (todayDailyChallenge.value == null) {
+        generateDailyChallenge(force = false)
+      }
+    }
+  }
+
+  fun closeDailyChallenge() {
+    _activeDailyChallengeSession.value = false
+  }
+
+  fun generateDailyChallenge(force: Boolean = false) {
+    viewModelScope.launch {
+      _isGeneratingChallenge.value = true
+      val profile = currentProfile.value
+      val childName = profile?.name ?: "Explorer"
+      val level = profile?.level ?: 2
+      val interest = profile?.favoriteInterest ?: "Animals"
+      repository.fetchOrGenerateDailyChallenge(childName, level, interest, forceRefresh = force)
+      _isGeneratingChallenge.value = false
+    }
+  }
+
+  fun completeDailyChallenge(challengeId: String, score: Int, stars: Int) {
+    viewModelScope.launch {
+      repository.completeDailyChallenge(challengeId, score, stars)
+    }
+  }
+
+  // --- Badge Actions ---
+  fun awardMilestoneStickerOrTrophy(
+    title: String,
+    description: String,
+    badgeType: String,
+    emoji: String,
+    category: String,
+    milestoneLevel: Int
+  ) {
+    viewModelScope.launch {
+      repository.awardMilestoneBadge(title, description, badgeType, emoji, category, milestoneLevel)
+    }
+  }
 }
+
 
 class MathBloomViewModelFactory(
   private val repository: MathBloomRepository

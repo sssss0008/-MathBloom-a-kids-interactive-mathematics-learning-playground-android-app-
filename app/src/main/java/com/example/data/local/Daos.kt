@@ -108,3 +108,40 @@ interface ParentSettingsDao {
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun saveSettings(settings: ParentSettings)
 }
+
+@Dao
+interface DailyChallengeDao {
+  @Query("SELECT * FROM daily_challenges ORDER BY dateString DESC")
+  fun getAllDailyChallenges(): Flow<List<com.example.data.model.DailyChallenge>>
+
+  @Query("SELECT * FROM daily_challenges WHERE dateString = :dateString LIMIT 1")
+  fun getChallengeForDate(dateString: String): Flow<com.example.data.model.DailyChallenge?>
+
+  @Query("SELECT * FROM daily_challenges WHERE dateString = :dateString LIMIT 1")
+  suspend fun getChallengeForDateSync(dateString: String): com.example.data.model.DailyChallenge?
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertChallenge(challenge: com.example.data.model.DailyChallenge)
+
+  @Query("UPDATE daily_challenges SET isCompleted = 1, score = :score, starsEarned = :stars, completedAt = :timestamp WHERE id = :id")
+  suspend fun markCompleted(id: String, score: Int, stars: Int, timestamp: Long = System.currentTimeMillis())
+}
+
+@Dao
+interface BadgeAwardDao {
+  @Query("SELECT * FROM badge_awards WHERE childId = :childId ORDER BY milestoneLevel ASC, isUnlocked DESC")
+  fun getBadgesForChild(childId: String): Flow<List<com.example.data.model.BadgeAward>>
+
+  @Query("SELECT * FROM badge_awards WHERE id = :badgeId LIMIT 1")
+  suspend fun getBadgeById(badgeId: String): com.example.data.model.BadgeAward?
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertBadges(badges: List<com.example.data.model.BadgeAward>)
+
+  @Query("UPDATE badge_awards SET isUnlocked = 1, unlockedAt = :timestamp, syncedToFirestore = :synced WHERE id = :badgeId")
+  suspend fun unlockBadge(badgeId: String, timestamp: Long = System.currentTimeMillis(), synced: Boolean = false)
+
+  @Query("UPDATE badge_awards SET syncedToFirestore = 1 WHERE id = :badgeId")
+  suspend fun markSynced(badgeId: String)
+}
+

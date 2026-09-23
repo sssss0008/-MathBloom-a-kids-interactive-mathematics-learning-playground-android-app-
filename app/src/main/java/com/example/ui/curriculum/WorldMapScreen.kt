@@ -71,8 +71,9 @@ fun WorldMapScreen(
 
       Card(
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(containerColor = topicColor.copy(alpha = 0.08f)),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, topicColor.copy(alpha = 0.25f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
           .fillMaxWidth()
           .clickable { onTopicSelected(topic.id) }

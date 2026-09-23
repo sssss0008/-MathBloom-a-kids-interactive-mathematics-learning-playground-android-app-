@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +56,8 @@ import com.example.ui.visualmath.MoneyShopRegister
 import com.example.ui.visualmath.MultiplicationArrayView
 import com.example.ui.visualmath.StepByStepGuidedDialog
 import com.example.ui.visualmath.VisualItemCounter
+import com.example.util.MathBloomSoundManager
+import com.example.util.SoundEffectType
 
 @Composable
 fun LessonPlayerScreen(
@@ -68,6 +71,9 @@ fun LessonPlayerScreen(
   var showSolutionDialog by remember { mutableStateOf(false) }
   var hintsUsedCount by remember { mutableIntStateOf(0) }
   var showCelebration by remember { mutableStateOf(false) }
+
+  val context = LocalContext.current
+  val soundManager = remember { MathBloomSoundManager.getInstance(context) }
 
   val scrollState = rememberScrollState()
 
@@ -97,6 +103,7 @@ fun LessonPlayerScreen(
         Button(
           onClick = {
             hintsUsedCount++
+            soundManager.playSound(SoundEffectType.HINT_CLICK)
             showHintSheet = true
           },
           colors = ButtonDefaults.buttonColors(containerColor = MathOrange.copy(alpha = 0.15f)),
@@ -120,8 +127,9 @@ fun LessonPlayerScreen(
     // Lesson Question Card
     Card(
       shape = RoundedCornerShape(22.dp),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
-      elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+      colors = CardDefaults.cardColors(containerColor = MathBlue.copy(alpha = 0.08f)),
+      border = androidx.compose.foundation.BorderStroke(1.5.dp, MathBlue.copy(alpha = 0.25f)),
+      elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
       modifier = Modifier.fillMaxWidth()
     ) {
       Column(
@@ -270,6 +278,7 @@ fun LessonPlayerScreen(
               if (option == lesson.correctAnswer) {
                 isCorrect = true
                 showCelebration = true
+                soundManager.playSound(SoundEffectType.CORRECT_ANSWER)
               } else {
                 isCorrect = false
               }

@@ -23,9 +23,11 @@ import kotlinx.coroutines.launch
     UserProgress::class,
     Achievement::class,
     CollectibleItem::class,
-    ParentSettings::class
+    ParentSettings::class,
+    com.example.data.model.DailyChallenge::class,
+    com.example.data.model.BadgeAward::class
   ],
-  version = 1,
+  version = 2,
   exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -36,6 +38,8 @@ abstract class MathBloomDatabase : RoomDatabase() {
   abstract fun achievementDao(): AchievementDao
   abstract fun collectibleDao(): CollectibleDao
   abstract fun parentSettingsDao(): ParentSettingsDao
+  abstract fun dailyChallengeDao(): DailyChallengeDao
+  abstract fun badgeAwardDao(): BadgeAwardDao
 
   companion object {
     @Volatile
@@ -74,6 +78,8 @@ abstract class MathBloomDatabase : RoomDatabase() {
         db.lessonDao().insertLessons(InitialData.initialLessons)
         db.achievementDao().insertAchievements(InitialData.sampleAchievements)
         db.collectibleDao().insertCollectibles(InitialData.sampleCollectibles)
+        db.badgeAwardDao().insertBadges(InitialData.sampleBadges)
+        db.dailyChallengeDao().insertChallenge(InitialData.sampleDailyChallenge)
       }
     }
   }

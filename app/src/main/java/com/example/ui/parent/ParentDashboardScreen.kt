@@ -16,15 +16,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -37,6 +41,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.firebase.AuthUserState
@@ -45,9 +51,15 @@ import com.example.data.model.ChildProfile
 import com.example.data.model.ParentSettings
 import com.example.data.model.UserProgress
 import com.example.ui.theme.MathBlue
+import com.example.ui.theme.MathCoral
 import com.example.ui.theme.MathGreen
 import com.example.ui.theme.MathOrange
 import com.example.ui.theme.MathPurple
+import com.example.ui.theme.MathTeal
+import com.example.ui.theme.MathYellow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ParentDashboardScreen(
@@ -69,10 +81,17 @@ fun ParentDashboardScreen(
   var narrationEnabled by remember(parentSettings?.narrationEnabled) { mutableStateOf(parentSettings?.narrationEnabled ?: true) }
   var dailyGoal by remember(parentSettings?.dailyGoalMinutes) { mutableIntStateOf(parentSettings?.dailyGoalMinutes ?: 15) }
 
+  // Modern Non-White Deep Slate Theme
+  val parentCanvasBg = Color(0xFF0B132B)     // Dark Midnight Blue Canvas
+  val cardBg = Color(0xFF1C2541)             // Navy Slate Card
+  val innerCardBg = Color(0xFF151D34)        // Deep Inner Container
+  val textLight = Color(0xFFF1F5F9)          // Clean Crisp Off-White / Silver Text
+  val textMuted = Color(0xFF94A3B8)          // Slate 400
+
   LazyColumn(
     modifier = Modifier
       .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
+      .background(parentCanvasBg)
       .padding(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
@@ -88,12 +107,12 @@ fun ParentDashboardScreen(
             text = "🛡️ Parent Dashboard",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            color = textLight
           )
           Text(
             text = "Learning insights, Firebase Auth & Firestore sync",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = textMuted
           )
         }
 
@@ -107,11 +126,16 @@ fun ParentDashboardScreen(
       }
     }
 
+    // VISUAL LEARNING DASHBOARD (Recharts / D3 inspired Interactive Component)
+    item {
+      LearningProgressVisualDashboard()
+    }
+
     // Firebase Auth & Google Sign-In Card
     item {
       Card(
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         modifier = Modifier.fillMaxWidth()
       ) {
@@ -127,7 +151,7 @@ fun ParentDashboardScreen(
             ) {
               Surface(
                 shape = CircleShape,
-                color = Color(0xFFFFF3E0),
+                color = Color(0xFF332014),
                 modifier = Modifier.size(36.dp)
               ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -138,19 +162,19 @@ fun ParentDashboardScreen(
                 text = "Firebase Auth & User Identity",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = textLight
               )
             }
 
             Surface(
               shape = RoundedCornerShape(8.dp),
-              color = if (authState.isAuthenticated) MathGreen.copy(alpha = 0.15f) else Color(0xFFFFEBEE)
+              color = if (authState.isAuthenticated) MathGreen.copy(alpha = 0.2f) else Color(0x33FF5252)
             ) {
               Text(
                 text = if (authState.isAuthenticated) "● Authenticated" else "● Guest Mode",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (authState.isAuthenticated) MathGreen else Color(0xFFD32F2F),
+                color = if (authState.isAuthenticated) MathGreen else Color(0xFFFF8A80),
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
               )
             }
@@ -160,7 +184,7 @@ fun ParentDashboardScreen(
 
           Surface(
             shape = RoundedCornerShape(14.dp),
-            color = Color(0xFFF8FAFC),
+            color = innerCardBg,
             modifier = Modifier.fillMaxWidth()
           ) {
             Column(modifier = Modifier.padding(14.dp)) {
@@ -168,18 +192,18 @@ fun ParentDashboardScreen(
                 text = "Signed in as: ${authState.displayName ?: "Parent / Guardian"}",
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
-                color = Color(0xFF1E293B)
+                color = textLight
               )
               Text(
                 text = "Email: ${authState.email ?: "awiskaracharya@gmail.com"}",
                 fontSize = 13.sp,
-                color = Color(0xFF475569)
+                color = textMuted
               )
               Text(
                 text = "User UID: ${authState.uid}",
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace,
-                color = Color(0xFF64748B)
+                color = textMuted.copy(alpha = 0.8f)
               )
             }
           }
@@ -202,6 +226,7 @@ fun ParentDashboardScreen(
             OutlinedButton(
               onClick = onSignOut,
               shape = RoundedCornerShape(12.dp),
+              colors = ButtonDefaults.outlinedButtonColors(contentColor = textLight),
               modifier = Modifier.weight(1f)
             ) {
               Text("Switch Account 🔄", fontSize = 12.sp)
@@ -215,7 +240,7 @@ fun ParentDashboardScreen(
     item {
       Card(
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         modifier = Modifier.fillMaxWidth()
       ) {
@@ -231,7 +256,7 @@ fun ParentDashboardScreen(
             ) {
               Surface(
                 shape = CircleShape,
-                color = Color(0xFFE8F5E9),
+                color = Color(0xFF0F382A),
                 modifier = Modifier.size(36.dp)
               ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -242,13 +267,13 @@ fun ParentDashboardScreen(
                 text = "Cloud Firestore Persistence",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = textLight
               )
             }
 
             Surface(
               shape = RoundedCornerShape(8.dp),
-              color = MathGreen.copy(alpha = 0.15f)
+              color = MathGreen.copy(alpha = 0.2f)
             ) {
               Text(
                 text = "${syncState.persistedRecordCount} Records Synced",
@@ -263,13 +288,13 @@ fun ParentDashboardScreen(
           Text(
             text = "Data persistence is active. Child profiles, lesson attempts, audio transcriptions (gemini-3.5-transcribe), and grounded search entries are automatically stored in Cloud Firestore.",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = textMuted,
             modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
           )
 
           Surface(
             shape = RoundedCornerShape(12.dp),
-            color = MathGreen.copy(alpha = 0.12f),
+            color = MathGreen.copy(alpha = 0.15f),
             modifier = Modifier.fillMaxWidth()
           ) {
             Row(
@@ -280,7 +305,7 @@ fun ParentDashboardScreen(
               Spacer(modifier = Modifier.width(8.dp))
               Text(
                 text = syncState.message,
-                color = Color(0xFF1B5E20),
+                color = MathGreen,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp
               )
@@ -301,68 +326,11 @@ fun ParentDashboardScreen(
       }
     }
 
-    // Weekly Activity Bar Chart Card
-    item {
-      Card(
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        modifier = Modifier.fillMaxWidth()
-      ) {
-        Column(modifier = Modifier.padding(18.dp)) {
-          Text(
-            text = "📊 Weekly Learning Minutes",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-          )
-          Text(
-            text = "Daily math practice over the past 7 days",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-
-          Spacer(modifier = Modifier.height(16.dp))
-
-          val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-          val minutes = listOf(12, 18, 15, 22, 10, 25, 20)
-          val maxMin = 30f
-
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .height(110.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Bottom
-          ) {
-            days.forEachIndexed { i, day ->
-              val m = minutes[i]
-              val heightFraction = (m / maxMin).coerceIn(0.1f, 1f)
-
-              Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "${m}m", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                  modifier = Modifier
-                    .width(24.dp)
-                    .height((80 * heightFraction).dp)
-                    .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                    .background(if (i == 5 || i == 6) MathOrange else MathBlue)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = day, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-              }
-            }
-          }
-        }
-      }
-    }
-
     // Child Profile & Adaptive Level Adjuster
     item {
       Card(
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         modifier = Modifier.fillMaxWidth()
       ) {
@@ -371,12 +339,12 @@ fun ParentDashboardScreen(
             text = "🎓 Child Learning Level",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = textLight
           )
           Text(
             text = "Adjust the curriculum difficulty level (1 to 8):",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = textMuted
           )
 
           Spacer(modifier = Modifier.height(12.dp))
@@ -399,7 +367,7 @@ fun ParentDashboardScreen(
 
               Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = if (isSelected) MathBlue else Color(0xFFF5F7FA),
+                color = if (isSelected) MathBlue else innerCardBg,
                 modifier = Modifier
                   .fillMaxWidth()
                   .clickable {
@@ -419,10 +387,373 @@ fun ParentDashboardScreen(
                   Spacer(modifier = Modifier.width(10.dp))
                   Text(
                     text = label,
-                    color = if (isSelected) Color.White else Color(0xFF263238),
+                    color = if (isSelected) Color.White else textLight,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     fontSize = 14.sp
                   )
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Password / PIN Protection Management Card
+    item {
+      var isEditingPin by remember { mutableStateOf(false) }
+      var currentPinInput by remember { mutableStateOf("") }
+      var newPinInput by remember { mutableStateOf("") }
+      var confirmPinInput by remember { mutableStateOf("") }
+      var pinStatusMessage by remember { mutableStateOf<String?>(null) }
+      var pinIsError by remember { mutableStateOf(false) }
+
+      val currentSavedPin = parentSettings?.pinCode ?: "1234"
+
+      Card(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+              Surface(
+                shape = CircleShape,
+                color = MathPurple.copy(alpha = 0.2f),
+                modifier = Modifier.size(36.dp)
+              ) {
+                Box(contentAlignment = Alignment.Center) {
+                  Text(text = "🔐", fontSize = 18.sp)
+                }
+              }
+              Column {
+                Text(
+                  text = "Parent Area Passcode & Security",
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = textLight
+                )
+                Text(
+                  text = "Protects adult settings and activity logs",
+                  fontSize = 12.sp,
+                  color = textMuted
+                )
+              }
+            }
+
+            TextButton(onClick = { isEditingPin = !isEditingPin }) {
+              Text(
+                text = if (isEditingPin) "Close" else "Change PIN",
+                color = MathTeal,
+                fontWeight = FontWeight.Bold
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(10.dp))
+
+          Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = innerCardBg,
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Column {
+                Text(
+                  text = "Active Gate Protection",
+                  fontWeight = FontWeight.SemiBold,
+                  fontSize = 13.sp,
+                  color = textLight
+                )
+                Text(
+                  text = "Password-protected via 4-digit PIN (${currentSavedPin.replace(Regex("."), "•")})",
+                  fontSize = 11.sp,
+                  color = textMuted
+                )
+              }
+              Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MathGreen.copy(alpha = 0.2f)
+              ) {
+                Text(
+                  text = "PROTECTED",
+                  fontWeight = FontWeight.Bold,
+                  fontSize = 11.sp,
+                  color = MathGreen,
+                  modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+              }
+            }
+          }
+
+          if (isEditingPin) {
+            Spacer(modifier = Modifier.height(14.dp))
+            Column(
+              modifier = Modifier
+                .fillMaxWidth()
+                .background(innerCardBg, RoundedCornerShape(14.dp))
+                .padding(14.dp),
+              verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+              Text(
+                text = "Update Parent Gate Passcode",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = textLight
+              )
+
+              OutlinedTextField(
+                value = currentPinInput,
+                onValueChange = { if (it.length <= 6) currentPinInput = it },
+                label = { Text("Current PIN", color = textMuted) },
+                placeholder = { Text("Enter current PIN (default: 1234)", color = textMuted.copy(alpha = 0.6f)) },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                  focusedTextColor = textLight,
+                  unfocusedTextColor = textLight,
+                  focusedBorderColor = MathTeal,
+                  unfocusedBorderColor = Color(0xFF334155)
+                ),
+                modifier = Modifier.fillMaxWidth()
+              )
+
+              OutlinedTextField(
+                value = newPinInput,
+                onValueChange = { if (it.length <= 6) newPinInput = it },
+                label = { Text("New 4-Digit PIN", color = textMuted) },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                  focusedTextColor = textLight,
+                  unfocusedTextColor = textLight,
+                  focusedBorderColor = MathTeal,
+                  unfocusedBorderColor = Color(0xFF334155)
+                ),
+                modifier = Modifier.fillMaxWidth()
+              )
+
+              OutlinedTextField(
+                value = confirmPinInput,
+                onValueChange = { if (it.length <= 6) confirmPinInput = it },
+                label = { Text("Confirm New PIN", color = textMuted) },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                  focusedTextColor = textLight,
+                  unfocusedTextColor = textLight,
+                  focusedBorderColor = MathTeal,
+                  unfocusedBorderColor = Color(0xFF334155)
+                ),
+                modifier = Modifier.fillMaxWidth()
+              )
+
+              pinStatusMessage?.let { msg ->
+                Text(
+                  text = msg,
+                  color = if (pinIsError) MathCoral else MathGreen,
+                  fontSize = 12.sp,
+                  fontWeight = FontWeight.SemiBold
+                )
+              }
+
+              Button(
+                onClick = {
+                  if (currentPinInput != currentSavedPin) {
+                    pinStatusMessage = "Current PIN does not match."
+                    pinIsError = true
+                  } else if (newPinInput.length < 4) {
+                    pinStatusMessage = "New PIN must be at least 4 digits."
+                    pinIsError = true
+                  } else if (newPinInput != confirmPinInput) {
+                    pinStatusMessage = "New PIN and confirmation do not match."
+                    pinIsError = true
+                  } else {
+                    parentSettings?.let { s ->
+                      onUpdateSettings(s.copy(pinCode = newPinInput))
+                    }
+                    pinStatusMessage = "PIN successfully updated!"
+                    pinIsError = false
+                    currentPinInput = ""
+                    newPinInput = ""
+                    confirmPinInput = ""
+                    isEditingPin = false
+                  }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MathPurple),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+              ) {
+                Text("Save New Passcode", fontWeight = FontWeight.Bold)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Comprehensive Activity Logs Card (Monitors problem solving, timestamps, hints, and accuracy)
+    item {
+      val dateFormat = remember { SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()) }
+
+      Card(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+              Surface(
+                shape = CircleShape,
+                color = MathTeal.copy(alpha = 0.2f),
+                modifier = Modifier.size(36.dp)
+              ) {
+                Box(contentAlignment = Alignment.Center) {
+                  Text(text = "📜", fontSize = 18.sp)
+                }
+              }
+              Column {
+                Text(
+                  text = "Live Activity Logs",
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = textLight
+                )
+                Text(
+                  text = "Track practice attempts, scores, and hints used",
+                  fontSize = 12.sp,
+                  color = textMuted
+                )
+              }
+            }
+
+            Surface(
+              shape = RoundedCornerShape(8.dp),
+              color = Color(0xFF2E3B52)
+            ) {
+              Text(
+                text = "${progressList.size} Sessions",
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                color = MathTeal,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(14.dp))
+
+          if (progressList.isEmpty()) {
+            Surface(
+              shape = RoundedCornerShape(14.dp),
+              color = innerCardBg,
+              modifier = Modifier.fillMaxWidth()
+            ) {
+              Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+              ) {
+                Text(text = "🌱", fontSize = 32.sp)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                  text = "No practice sessions recorded yet",
+                  fontWeight = FontWeight.Bold,
+                  fontSize = 14.sp,
+                  color = textLight
+                )
+                Text(
+                  text = "As your child completes arithmetic problems and daily quests, session logs will appear here.",
+                  fontSize = 12.sp,
+                  color = textMuted,
+                  textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+              }
+            }
+          } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              progressList.take(6).forEach { prog ->
+                Surface(
+                  shape = RoundedCornerShape(14.dp),
+                  color = innerCardBg,
+                  modifier = Modifier.fillMaxWidth()
+                ) {
+                  Row(
+                    modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Row(
+                      verticalAlignment = Alignment.CenterVertically,
+                      horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                      Surface(
+                        shape = CircleShape,
+                        color = if (prog.isCompleted) MathGreen.copy(alpha = 0.2f) else MathOrange.copy(alpha = 0.2f),
+                        modifier = Modifier.size(36.dp)
+                      ) {
+                        Box(contentAlignment = Alignment.Center) {
+                          Text(text = if (prog.isCompleted) "✓" else "⏳", color = if (prog.isCompleted) MathGreen else MathOrange, fontWeight = FontWeight.Bold)
+                        }
+                      }
+                      Column {
+                        Text(
+                          text = "Lesson: ${prog.lessonId.replace("_", " ").capitalize(Locale.ROOT)}",
+                          fontWeight = FontWeight.Bold,
+                          fontSize = 13.sp,
+                          color = textLight
+                        )
+                        Text(
+                          text = "${dateFormat.format(Date(prog.lastPracticedTimestamp))} • ${prog.hintsUsed} hints used",
+                          fontSize = 11.sp,
+                          color = textMuted
+                        )
+                      }
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                      Text(
+                        text = "${prog.accuracyPercentage}% Acc",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 13.sp,
+                        color = if (prog.accuracyPercentage >= 80) MathGreen else MathOrange
+                      )
+                      Text(
+                        text = "★ ${prog.starsEarned} stars",
+                        fontSize = 11.sp,
+                        color = MathYellow,
+                        fontWeight = FontWeight.SemiBold
+                      )
+                    }
+                  }
                 }
               }
             }
@@ -435,7 +766,7 @@ fun ParentDashboardScreen(
     item {
       Card(
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         modifier = Modifier.fillMaxWidth()
       ) {
@@ -444,7 +775,7 @@ fun ParentDashboardScreen(
             text = "⚙️ Learning Settings",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = textLight
           )
 
           Spacer(modifier = Modifier.height(14.dp))
@@ -456,8 +787,8 @@ fun ParentDashboardScreen(
             verticalAlignment = Alignment.CenterVertically
           ) {
             Column {
-              Text("Voice Narration & Audio Hints", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-              Text("Speaks problem text out loud for early readers", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+              Text("Voice Narration & Audio Hints", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = textLight)
+              Text("Speaks problem text out loud for early readers", fontSize = 12.sp, color = textMuted)
             }
             Switch(
               checked = narrationEnabled,
@@ -477,8 +808,8 @@ fun ParentDashboardScreen(
             verticalAlignment = Alignment.CenterVertically
           ) {
             Column {
-              Text("Playful Sound Effects", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-              Text("Fun chimes for stars and achievements", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+              Text("Playful Sound Effects & Audio Clips", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = textLight)
+              Text("Fun chimes & encouraging voice praise for correct answers", fontSize = 12.sp, color = textMuted)
             }
             Switch(
               checked = soundEnabled,
@@ -492,24 +823,25 @@ fun ParentDashboardScreen(
       }
     }
 
+
     // Privacy & Child Safety Statement
     item {
       Card(
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F9FD)),
+        colors = CardDefaults.cardColors(containerColor = innerCardBg),
         modifier = Modifier.fillMaxWidth()
       ) {
         Column(modifier = Modifier.padding(16.dp)) {
           Text(
             text = "🔒 Child Safety & Privacy Commitment",
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF37474F),
+            color = textLight,
             fontSize = 13.sp
           )
           Text(
             text = "• Zero public chat, messaging, or social feeds\n• Secure Firebase Auth and encrypted Firestore persistence\n• Audio transcription powered by gemini-3.5-transcribe\n• Real-world search verified by gemini-3.5-flash & Google Search",
             fontSize = 12.sp,
-            color = Color(0xFF546E7A),
+            color = textMuted,
             lineHeight = 18.sp,
             modifier = Modifier.padding(top = 4.dp)
           )
@@ -518,3 +850,4 @@ fun ParentDashboardScreen(
     }
   }
 }
+
